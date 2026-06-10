@@ -1,0 +1,38 @@
+require('dotenv').config();
+const { App } = require('@slack/bolt');
+const Groq = require('groq-sdk');
+
+const app = new App({
+  token: process.env.SLACK_BOT_TOKEN,
+  signingSecret: process.env.SLACK_SIGNING_SECRET
+});
+
+const groq = new Groq({ apiKey: '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' });
+
+app.event('app_mention', async ({ event, say }) => {
+  console.log("Mention received:", event.text);
+  try {
+    const userMessage = event.text.replace(/<@[A-Z0-9]+>/g, '').trim();
+    console.log("User asked:", userMessage);
+
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: 'You are BlaZop-AI-Agent, a helpful AI assistant in Slack.' },
+        { role: 'user', content: userMessage }
+      ],
+      model: 'llama-3.3-70b-versatile',
+    });
+
+    const reply = completion.choices[0].message.content;
+    await say({ text: reply, thread_ts: event.ts });
+
+  } catch (error) {
+    console.error("Error:", error.message);
+    await say({ text: "Sorry, I had trouble processing that!", thread_ts: event.ts });
+  }
+});
+
+(async () => {
+  await app.start(3000);
+  console.log("⚡ BlaZop-AI-Agent running on port 3000");
+})();
