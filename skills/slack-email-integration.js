@@ -11,15 +11,26 @@ function createTransporter() {
   // If real SMTP credentials exist, use them
   if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
     console.log('📧 Using real SMTP transporter');
-    return nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: parseInt(SMTP_PORT) || 587,
-      secure: false,
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS
-      }
-    });
+    // return nodemailer.createTransport({
+    //   host: SMTP_HOST,
+    //   port: parseInt(SMTP_PORT) || 587,
+    //   secure: false,
+    //   auth: {
+    //     user: SMTP_USER,
+    //     pass: SMTP_PASS
+    //   }
+    // });
+
+    const port = parseInt(SMTP_PORT) || 587;
+return nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: port,
+  secure: port === 465,
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS
+  }
+});
   }
 
   // Otherwise use Ethereal (free fake SMTP for testing)
