@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node node_modules/jest/bin/jest.js",
     "start": "node app.js"
   },
   "keywords": [],
@@ -23,5 +23,8 @@
     "openai": "^6.42.0",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^6.0.227"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
   }
 }
