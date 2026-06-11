@@ -47,36 +47,89 @@ return nodemailer.createTransport({
 
 // Send ticket creation email
 async function sendTicketEmail(ticketData) {
-  const {
-    ticketId,
-    description,
-    createdBy,
-    channel,
-    priority = 'Medium'
-  } = ticketData;
-
+  const { ticketId, description, createdBy, channel, priority = 'Medium' } = ticketData;
   const toEmail = process.env.SUPPORT_EMAIL || 'support@blazop.com';
+  const apiKey = process.env.BREVO_API_KEY;
 
-  // Mock mode - just log if no real email setup
-  if (!process.env.SMTP_HOST && !process.env.ETHEREAL_USER) {
+  // Mock mode if no API key
+  if (!apiKey) {
     console.log('📧 [MOCK EMAIL] Would send to:', toEmail);
-    console.log('📧 [MOCK EMAIL] Subject: New Support Ticket #' + ticketId);
-    console.log('📧 [MOCK EMAIL] Body:', {
-      ticketId,
-      description,
-      createdBy,
-      channel,
-      priority,
-      timestamp: new Date().toISOString()
+    return { success: true, mock: true, message: `Mock email for Ticket #${ticketId}`, to: toEmail };
+  }
+
+  try {
+    const https = require('https');
+    const emailData = JSON.stringify({
+      sender: { name: 'BlaZop AI Agent', email: 'sairamana992@gmail.com' },
+      to: [{ email: toEmail }],
+      subject: `[BlaZop] New Support Ticket #${ticketId} - ${priority} Priority`,
+      htmlContent: `<div style="font-family:Arial,sans-serif;max-width:600px"><h2 style="color:#4A154B">🎫 New Support Ticket Created</h2><table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px;font-weight:bold">Ticket ID:</td><td>#${ticketId}</td></tr><tr><td style="padding:8px;font-weight:bold">Description:</td><td>${description}</td></tr><tr><td style="padding:8px;font-weight:bold">Created By:</td><td>${createdBy}</td></tr><tr><td style="padding:8px;font-weight:bold">Channel:</td><td>${channel}</td></tr><tr><td style="padding:8px;font-weight:bold">Priority:</td><td>${priority}</td></tr><tr><td style="padding:8px;font-weight:bold">Time:</td><td>${new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})}</td></tr></table><p style="color:#666;margin-top:20px">Automated notification from BlaZop-AI-Agent.</p></div>`
     });
 
-    return {
-      success: true,
-      mock: true,
-      message: `Mock email sent for Ticket #${ticketId}`,
-      to: toEmail
-    };
+    const result = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: 'api.brevo.com',
+        path: '/v3/smtp/email',
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': apiKey,
+          'content-type': 'application/json',
+          'content-length': Buffer.byteLength(emailData)
+        }
+      }, (res) => {
+        let data = '';
+        res.on('data', c => data += c);
+        res.on('end', () => resolve({ statusCode: res.statusCode, body: data }));
+      });
+      req.on('error', reject);
+      req.write(emailData);
+      req.end();
+    });
+
+    console.log('📧 Brevo API:', result.statusCode, result.body);
+    if (result.statusCode === 201) {
+      return { success: true, mock: false, messageId: JSON.parse(result.body).messageId, to: toEmail };
+    }
+    throw new Error(`Brevo error: ${result.body}`);
+
+  } catch (error) {
+    console.error('📧 Email error:', error.message);
+    return { success: false, error: error.message };
   }
+}
+
+// async function sendTicketEmail(ticketData) {
+//   const {
+//     ticketId,
+//     description,
+//     createdBy,
+//     channel,
+//     priority = 'Medium'
+//   } = ticketData;
+
+//   const toEmail = process.env.SUPPORT_EMAIL || 'support@blazop.com';
+
+//   // Mock mode - just log if no real email setup
+//   if (!process.env.SMTP_HOST && !process.env.ETHEREAL_USER) {
+//     console.log('📧 [MOCK EMAIL] Would send to:', toEmail);
+//     console.log('📧 [MOCK EMAIL] Subject: New Support Ticket #' + ticketId);
+//     console.log('📧 [MOCK EMAIL] Body:', {
+//       ticketId,
+//       description,
+//       createdBy,
+//       channel,
+//       priority,
+//       timestamp: new Date().toISOString()
+//     });
+
+//     return {
+//       success: true,
+//       mock: true,
+//       message: `Mock email sent for Ticket #${ticketId}`,
+//       to: toEmail
+//     };
+//   }
 
   // try {
   //   const transporter = createTransporter();
