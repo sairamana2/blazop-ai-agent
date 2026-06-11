@@ -16,9 +16,6 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET
 });
 
-// const groq = new Groq({
-//   apiKey: process.env.GROQ_API_KEY || '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'
-// });
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
