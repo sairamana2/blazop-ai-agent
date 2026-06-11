@@ -137,6 +137,95 @@ slack-ai-agent/
 
 ---
 
+## Getting Started
+
+### Prerequisites
+- Node.js v18 or higher
+- ngrok (for local development)
+- A Slack workspace with admin access
+
+### Installation
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/sairamana2/blazop-ai-agent.git
+cd blazop-ai-agent
+```
+
+**2. Install dependencies**
+```bash
+npm install
+```
+
+**3. Create a Slack App**
+- Go to https://api.slack.com/apps
+- Click "Create New App" → "From scratch"
+- Add these Bot Token Scopes under OAuth & Permissions:
+  - `app_mentions:read`
+  - `chat:write`
+  - `channels:read`
+  - `groups:history`
+  - `files:read`
+  - `reactions:write`
+- Enable Event Subscriptions → add `app_mention` bot event
+- Enable Interactivity & Shortcuts
+- Install app to workspace → copy Bot Token and Signing Secret
+
+**4. Set up MongoDB Atlas**
+- Create free cluster at https://cloud.mongodb.com
+- Create database user and allow network access
+- Copy connection string
+
+**5. Set up Groq API**
+- Create free account at https://console.groq.com
+- Generate API key
+
+**6. Set up Brevo Email**
+- Create free account at https://app.brevo.com
+- Go to SMTP & API → API Keys → Create key
+- Add and verify your sender email
+
+**7. Configure environment variables**
+```bash
+cp skills/.env.example .env
+```
+Edit `.env` and fill in all values:
+
+SLACK_BOT_TOKEN=xoxb-your-token
+SLACK_SIGNING_SECRET=your-secret
+GROQ_API_KEY=gsk_your-key
+MONGODB_URI=mongodb+srv://...
+BREVO_API_KEY=xkeysib-your-key
+SUPPORT_EMAIL=your@email.com
+
+**8. Start ngrok tunnel**
+```bash
+ngrok http 3000
+```
+Copy the HTTPS URL (e.g. `https://abc123.ngrok-free.app`)
+
+**9. Update Slack URLs**
+- Event Subscriptions Request URL: `https://your-ngrok-url/slack/events`
+- Interactivity Request URL: `https://your-ngrok-url/slack/events`
+
+**10. Start the bot**
+```bash
+node app.js
+```
+
+**11. Invite bot to your channel**
+In Slack: `/invite @BlaZop-AI-Agent`
+
+**12. Test it**
+
+@BlaZop-AI-Agent hello
+
+### Cloud Deployment (Railway)
+- Push code to GitHub
+- Connect repo to Railway at https://railway.app
+- Add all environment variables in Railway → Variables
+- Railway auto-deploys — no ngrok needed
+
 ## Environment Configuration
 
 ```
